@@ -1,12 +1,12 @@
-name: Node.js app deploy to EKS and Trufflehog Scan
+name: Spring boot DevSecops pipeline to EKS
 
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   trufflehog-scan:
