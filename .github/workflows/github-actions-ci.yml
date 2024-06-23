@@ -88,8 +88,12 @@ jobs:
         run: docker pull aquasec/trivy
 
       - name: Run Trivy scan and check for vulnerabilities
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: mydemorepoecr
+          IMAGE_TAG: latest
         run: |
-          docker run -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/Library/Caches:/root/.cache/  aquasec/trivy image ${REGISTRY}/${REPOSITORY}:${IMAGE_TAG} || echo "Trivy results"
+          docker run -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/Library/Caches:/root/.cache/  aquasec/trivy image $REGISTRY/$REPOSITORY:$IMAGE_TAG || echo "Trivy results"
 
       - name: Push Docker image to Amazon ECR
         run: |
