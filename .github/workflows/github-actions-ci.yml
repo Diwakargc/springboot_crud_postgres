@@ -89,7 +89,7 @@ jobs:
 
       - name: Run Trivy scan and check for vulnerabilities
         run: |
-          docker run  -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/root aquasec/trivy image ${REGISTRY}/${REPOSITORY}:${IMAGE_TAG} || echo "Trivy results"
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock v $HOME/Library/Caches:/root/.cache/  aquasec/trivy image ${REGISTRY}/${REPOSITORY}:${IMAGE_TAG} || echo "Trivy results"
 
       - name: Push Docker image to Amazon ECR
         run: |
