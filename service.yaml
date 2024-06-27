@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: springboot-postgres
 spec:
-  selector:
-    app: springboot-postgres
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
   type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 3000  # Adjust to match your application's container port
+      protocol: TCP
+  selector:
+    app: springboot-postgres  # Ensure this matches the labels of your Deployment or Pods
