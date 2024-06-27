@@ -6,7 +6,7 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 3000  # Adjust to match your application's container port
+      targetPort: 80  # Adjust to match your application's container port
       protocol: TCP
   selector:
     app: springboot-postgres  # Ensure this matches the labels of your Deployment or Pods
