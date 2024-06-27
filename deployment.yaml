@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sprinboot-postgres
+  namespace: default
   labels:
     app: sprinboot-postgres
 spec:
@@ -16,14 +17,14 @@ spec:
     spec:
       containers:
         - name: sprinboot-postgres
-          image: 304520711562.dkr.ecr.us-east-1.amazonaws.com/mydemorepoecr:1.1
+          image: ***.dkr.ecr.us-east-1.amazonaws.com/mydemorepoecr:1.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-      env:
-       - name: SPRING_DATASOURCE_URL
-         value: "jdbc:postgresql://postgres.eniyan:5432/postgres"           
-       - name: SPRING_DATASOURCE_USERNAME
-         value: "root"            
-       - name: SPRING_DATASOURCE_PASSWORD
-         value: "admin"
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.eniyan:5432/postgres
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: admin
