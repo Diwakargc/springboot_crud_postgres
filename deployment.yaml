@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sprinboot-postgres
+  name: springboot-postgres
   namespace: default
   labels:
-    app: sprinboot-postgres
+    app: springboot-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sprinboot-postgres
+      app: springboot-postgres
   template:
     metadata:
       labels:
-        app: sprinboot-postgres
+        app: springboot-postgres
     spec:
       containers:
-        - name: sprinboot-postgres
+        - name: springboot-postgres
           image: 304520711562.dkr.ecr.us-east-1.amazonaws.com/mydemorepoecr:1.1
           imagePullPolicy: Always
           ports:
