@@ -79,7 +79,7 @@ jobs:
       - name: Build and tag Docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: mydemorepoecr
+          REPOSITORY: spring-boot-repo
           IMAGE_TAG: latest
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
