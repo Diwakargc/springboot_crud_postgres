@@ -5,6 +5,6 @@ usermgmt:
   replicas: 1
   servicePort: 8080
   env:
-    dbUrl: "jdbc:postgresql://postgres:5432/postgres"
+    dbUrl: "jdbc:postgresql://postgres.eniyan:5432/postgres" 
     dbUser: root
     dbPassword: admin
