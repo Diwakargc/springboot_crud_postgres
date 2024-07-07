@@ -124,4 +124,4 @@ jobs:
       
       - name: Deploy to EKS using HelmChart
         run: |
-         helm upgrade --install myrelease ./helmchart-restapp
+         helm upgrade --install diwarelease ./helmchart-restapp
