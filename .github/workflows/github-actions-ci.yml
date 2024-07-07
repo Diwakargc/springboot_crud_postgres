@@ -122,8 +122,6 @@ jobs:
       - name: Update kube config
         run: aws eks update-kubeconfig --name eniyan-eks --region us-east-1
       
-      - name: Deploy to EKS
+      - name: Deploy to EKS using HelmChart
         run: |
-          kubectl apply -f UserManagementMicroservice-Deployment-Service
-
-          kubectl apply -f UserManagement-Service.yml
+         helm upgrade --install myrelease ./helmchart-restapp
