@@ -1,4 +1,4 @@
-# mychart/Chart.yaml
+# helmchart-restapp/Chart.yaml
 apiVersion: v2
 name: mychart
 description: A Helm chart for deploying usermgmt app and postgres to EKS
