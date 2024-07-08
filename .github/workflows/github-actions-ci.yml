@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: '3.x'  # Replace with the Python version you need
 
-    trufflehog-scan:
+  trufflehog-scan:
       runs-on: ubuntu-latest
       name: Trufflehog Scan
       steps:
@@ -29,25 +29,25 @@ jobs:
           with:
             fetch-depth: 0
         - name: Install Python
-        uses: actions/setup-python@v2
+          uses: actions/setup-python@v2
           with:
             python-version: '3.x'  # Replace with the Python version you need
         - name: Install TruffleHog
           run: |
             docker run --rm -v "$GITHUB_WORKSPACE:/tmp" trufflesecurity/trufflehog:latest --fail --only-verified --no-update git file:///tmp/
 
-    snyk-scan:
-      runs-on: ubuntu-latest
-      name: Snyk scan
+  snyk-scan:
+       runs-on: ubuntu-latest
+       name: Snyk scan
       
-      steps:
+       steps:
         - name: Run Snyk to check for vulnerabilities
           uses: snyk/actions/node@master
           continue-on-error: true
           env:
             SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-    semgrep:
+  semgrep:
       name: semgrep/ci
       runs-on: ubuntu-20.04
      
