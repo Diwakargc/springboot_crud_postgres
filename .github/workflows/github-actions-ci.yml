@@ -9,17 +9,6 @@ on:
       - master
 
 jobs:
-  SecOps-Scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trufflehog Scan
-        run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/tmp" trufflesecurity/trufflehog:latest --fail --only-verified --no-update git file:///tmp/
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'  # Replace with the Python version you need
-
   trufflehog-scan:
       runs-on: ubuntu-latest
       name: Trufflehog Scan
