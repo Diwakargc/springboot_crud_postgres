@@ -39,7 +39,7 @@ jobs:
   snyk-scan:
        runs-on: ubuntu-latest
        name: Snyk scan
-      
+       needs: trufflehog-scan
        steps:
         - name: Run Snyk to check for vulnerabilities
           uses: snyk/actions/node@master
@@ -50,7 +50,7 @@ jobs:
   semgrep:
       name: semgrep/ci
       runs-on: ubuntu-20.04
-     
+      needs: trufflehog-scan
       env:
         SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
       container:
@@ -62,6 +62,9 @@ jobs:
   build-and-trivy-scan:
     runs-on: ubuntu-latest
     name: Build Docker image and Run Trivy Scan
+    needs: 
+       - snyk-scan
+       - semgrep
     
     steps:
       - name: Checkout code
