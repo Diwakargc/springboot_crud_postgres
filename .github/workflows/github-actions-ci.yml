@@ -1,4 +1,4 @@
-name: Spring boot DevSecOps pipeline to EKS
+name: Spring boot DevSecops pipeline to EKS
 
 
 
@@ -104,19 +104,11 @@ jobs:
 
   build-and-trivy-scan:
 
-    strategy:
-
-      matrix:
-
-        kubectl_version: ['v1.30.0']
-
-        trivy_version: ['latest']
-
     runs-on: ubuntu-latest
 
-    name: Build Docker image and Run Trivy Scan
-
     needs: semgrep
+
+    name: Build Docker image and Run Trivy Scan
 
     steps:
 
@@ -136,7 +128,7 @@ jobs:
 
         with:
 
-          version: ${{ matrix.kubectl_version }}
+          version: 'v1.30.0'  # Adjust to the version you need
 
 
 
