@@ -1,242 +1,117 @@
-name: Spring boot DevSecops pipeline to EKS
-
-
+name: Spring boot DevSecOps pipeline to EKS
 
 on:
-
   push:
-
     branches:
-
       - master
-
   pull_request:
-
     branches:
-
       - master
-
-
 
 jobs:
+  trufflehog-scan:
+      runs-on: ubuntu-latest
+      name: Trufflehog Scan
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - name: Install Python
+          uses: actions/setup-python@v2
+          with:
+            python-version: '3.x'  # Replace with the Python version you need
+        - name: Install TruffleHog
+          run: |
+            docker run --rm -v "$GITHUB_WORKSPACE:/tmp" trufflesecurity/trufflehog:latest --fail --only-verified --no-update git file:///tmp/
+  snyk-scan:
+       runs-on: ubuntu-latest
+       name: Snyk scan
+       needs: trufflehog-scan
+       steps:
+        - name: Run Snyk to check for vulnerabilities
+          uses: snyk/actions/node@master
+          continue-on-error: true
+          env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-  SecOps-Scan:
-
-    runs-on: ubuntu-latest
-
-    name: Security Scans
-
-    steps:
-
-      - name: Checkout code
-
-        uses: actions/checkout@v3
-
-        with:
-
-          fetch-depth: 0
-
-
-
-      - name: Install Python
-
-        uses: actions/setup-python@v2
-
-        with:
-
-          python-version: '3.x'
-
-
-
-      - name: Install TruffleHog
-
-        run: |
-
-          docker run --rm -v "$GITHUB_WORKSPACE:/tmp" trufflesecurity/trufflehog:latest --fail --only-verified --no-update git file:///tmp/
-
-
-
-      - name: Run Snyk to check for vulnerabilities
-
-        uses: snyk/actions/node@master
-
-        continue-on-error: true
-
-        env:
-
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-
-
-      - name: Run Semgrep CI
-
-        uses: returntocorp/semgrep-action@v1
-
-        with:
-
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-
+  semgrep:
+      name: semgrep/ci
+      runs-on: ubuntu-20.04
+      needs: trufflehog-scan
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      container:
+        image: returntocorp/semgrep
+      steps:
+        - uses: actions/checkout@v3
+        - run: semgrep ci
 
   build-and-trivy-scan:
-
     runs-on: ubuntu-latest
-
     name: Build Docker image and Run Trivy Scan
-
-    needs: SecOps-Scan
-
+    needs: 
+       - snyk-scan
+       - semgrep
+    
     steps:
-
       - name: Checkout code
-
         uses: actions/checkout@v3
-
         with:
-
           fetch-depth: 0
-
-
-
       - name: Install kubectl
-
         uses: azure/setup-kubectl@v2.0
-
         with:
-
-          version: 'v1.30.0'
-
-
-
+          version: 'v1.30.0'  # Adjust to the version you need
       - name: Configure AWS Credentials
-
         uses: aws-actions/configure-aws-credentials@v1
-
         with:
-
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
           aws-region: us-east-1
-
-
-
       - name: Login to Amazon ECR
-
         id: login-ecr
-
         uses: aws-actions/amazon-ecr-login@v1
-
-
-
       - name: Build and tag Docker image
-
         env:
-
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-
           REPOSITORY: spring-boot-repo
-
           IMAGE_TAG: latest
-
         run: |
-
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-
-
-
       - name: Install Trivy Scan
-
         run: docker pull aquasec/trivy
-
-
-
       - name: Run Trivy scan and check for vulnerabilities
-
         env:
-
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-
           REPOSITORY: spring-boot-repo
-
           IMAGE_TAG: latest
-
         run: |
-
           docker run -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/Library/Caches:/root/.cache/ aquasec/trivy image $REGISTRY/$REPOSITORY:$IMAGE_TAG || echo "Trivy results"
-
-
-
-      - name: Archive Docker image as artifact
-
-        uses: actions/upload-artifact@v2
-
-        with:
-
-          name: docker-image
-
-          path: ${{ steps.login-ecr.outputs.registry }}/${{ steps.login-ecr.outputs.repository }}:${{ steps.login-ecr.outputs.tag }}
-
-
-
-      - name: Archive Trivy scan results as artifact
-
-        uses: actions/upload-artifact@v2
-
-        with:
-
-          name: trivy-results
-
-          path: /root/.cache/trivy
-
-
-
-  deploy-to-eks:
-
-    runs-on: ubuntu-latest
-
-    needs: build-and-trivy-scan
-
-    name: Deploy to EKS
-
-    steps:
-
-      - name: Configure AWS Credentials
-
-        uses: aws-actions/configure-aws-credentials@v1
-
-        with:
-
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-          aws-region: us-east-1
-
-
-
-      - name: Checkout code
-
-        uses: actions/checkout@v3
-
-        with:
-
-          fetch-depth: 0
-
-
-
-      - name: Update kube config
-
-        run: aws eks update-kubeconfig --name eniyan-eks --region us-east-1
-
-
-
-      - name: Deploy to EKS using HelmChart
-
+      - name: Push Docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: spring-boot-repo
+          IMAGE_TAG: latest
         run: |
-
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+  deploy-to-eks:
+    runs-on: ubuntu-latest
+    needs: build-and-trivy-scan
+    name: Deploy to EKS
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name eniyan-eks --region us-east-1
+      - name: Deploy to EKS using HelmChart
+        run: |
           helm upgrade --install diwarelease ./helmchart-restapp --namespace diwa
-
