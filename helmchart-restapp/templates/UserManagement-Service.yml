@@ -1,4 +1,3 @@
-# templates/usermgmt-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,7 +5,7 @@ metadata:
   labels:
     app: usermgmt-restapp
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: usermgmt-restapp
   ports:
