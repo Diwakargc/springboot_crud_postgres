@@ -18,7 +18,7 @@ spec:
         paths:
           - path: /
             pathType: Prefix
-            defaultbackend:
+            backend:
               service:
                 name: usermgmt-restapp
                 port: 
